@@ -63,7 +63,7 @@ static int tri_index(int i, int j) {
 
 /* 파스칼의 삼각형을 tri[] 에 채운다. */
 static void build_pascal(int *tri, int rows) {
-    for (int i = 0; i <= rows; i++) {
+    for (int i = 0; i < rows; i++) {    //rows가 14로 정의 되어 있는데, i<=14까지로 하면 0~14까지 생행하게 됨. 그래서 <을 써서 0~13까지 실행하게 해서 해결
         for (int j = 0; j <= i; j++) {
             int idx = tri_index(i, j);
             if (j == 0 || j == i) {

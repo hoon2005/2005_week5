@@ -27,3 +27,5 @@ vgcore.*
 !.vscode/launch.json
 !.vscode/tasks.json
 !.vscode/extensions.json
+secrets.py
+__pycache__/

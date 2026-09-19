@@ -25,7 +25,7 @@
  *   (gdb) print w->vtbl               → 오염돼 있음
  *   (gdb) print s->items[2]           → 이미 해제된 슬롯이 그대로 남아있음
  *   (gdb) break widget_destroy        → 누가/언제 이 위젯을 free 하는지 역추적
- *
+ *          
  * [printf(로그)로 잡기]
  *   위젯 해제 시점과 렌더 시점의 vtbl 값을 각각 찍어 "해제가 사용보다 먼저"인지 확인:
  *     (destroy) fprintf(stderr, "destroy id=%d w=%p vtbl=%p\n", w->id,(void*)w,(void*)w->vtbl);
@@ -113,6 +113,7 @@ static void screen_add(Screen *s, Widget *w) {
 static void screen_dispatch(Screen *s, int code) {
     for (int i = 0; i < s->count; i++) {
         Widget *w = s->items[i];
+        if (w == NULL) continue; //여기
         w->vtbl->on_event(w, code);
     }
 }
@@ -120,6 +121,7 @@ static void screen_dispatch(Screen *s, int code) {
 static void screen_render(Screen *s) {
     for (int i = 0; i < s->count; i++) {
         Widget *w = s->items[i];
+        if (w == NULL) continue; //여기
         w->vtbl->render(w);      
     }
 }
@@ -127,7 +129,11 @@ static void screen_render(Screen *s) {
 static void dialog_on_event(Widget *self, int code) {
     if (code == 1) {
         self->closed = 1;
-        widget_destroy(self);   
+        //widget_destroy(self);   //찾았다 범인 1
+
+        //다이얼로그는 이벤트 코드 1(닫기)을 받으면 스스로 정리(파괴)된다
+        //다이얼로그가 스스로 widget_destroy(self)를 호출해서 자기 자신을 free해버린다.
+        //다이얼로그는 스스로 free하는 대신, "나 닫혔어요" (self->closed = 1) 라는 표식만 남긴다.
     }
 }
 
@@ -158,6 +164,13 @@ int main(void) {
     screen_dispatch(&s, 1);
 
     /* TODO 닫힌(closed) 위젯을 여기서 정리(free + 해당 슬롯 NULL)할 필요가 있음 */
+    for (int i = 0; i<s.count; i++){ 
+        if (s.items[i] != NULL && s.items[i]->closed == 1){
+            free(s.items[i]);
+            s.items[i] = NULL;
+        }
+    }
+    
 
     char *status = app_build_status("dialog closed");
     printf("%s\n", status);
