@@ -83,7 +83,7 @@ static void deliver(Broker *b, Subscriber sub) {
     while (b->head != b->tail) {
         Msg *m = b->inbox[b->head];
         b->head = (b->head + 1) % QCAP;
-        sub(m);                          
+        sub(m);
     }
 }
 

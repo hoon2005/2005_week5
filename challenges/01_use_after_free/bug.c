@@ -170,6 +170,8 @@ int main(void) {
             s.items[i] = NULL;
         }
     }
+    //이벤트 핸들러 안에서 무단으로 free하지 말고,
+    //표식만 남겨두면 화면 관리자가 안전하게 수거해서 메모리를 해제하고 장부까지 NULL로 깨끗하게 비워라
     
 
     char *status = app_build_status("dialog closed");
